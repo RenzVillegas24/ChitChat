@@ -89,14 +89,8 @@ fun ChatDetailScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Horizontal))
+            .background(MaterialTheme.colorScheme.background)
     ) {
-        // Background
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-        )
 
         // Messages List - This will be compressed by keyboard instead of being pushed up
         LazyColumn(
@@ -104,11 +98,10 @@ fun ChatDetailScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .hazeSource(state = hazeState)
-                .padding(horizontal = 16.dp)
-                .windowInsetsPadding(WindowInsets.statusBars.only(WindowInsetsSides.Top)),
+                .padding(horizontal = 16.dp),
             contentPadding = PaddingValues(
-                top = 80.dp,
-                bottom = 160.dp
+                top = statusBarPadding + 80.dp,
+                bottom = 96.dp
             ),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
@@ -117,6 +110,11 @@ fun ChatDetailScreen(
                     message = message,
                     isGroup = chatData.isGroup
                 )
+            }
+            item {
+                Spacer(modifier = Modifier
+                    .windowInsetsPadding(WindowInsets.ime)
+                    .windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Bottom)))
             }
         }
 
@@ -212,106 +210,132 @@ fun ChatDetailScreen(
             }
         )
 
+
+
+        // Message Input Area with Haze Effect - This will move smoothly with keyboard
+        Box(
+            modifier = Modifier
+            .align(Alignment.BottomCenter)
+            .fillMaxWidth()
+            .offset(y = WindowInsets.navigationBars.only(WindowInsetsSides.Bottom).asPaddingValues().calculateBottomPadding())
+            .windowInsetsPadding(WindowInsets.ime)
+            .windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Bottom))
+            .requiredHeight(statusBarPadding + 120.dp)
+            .hazeSource(hazeState, zIndex = 1f)
+            .hazeEffect(
+                hazeState,
+                style = HazeStyle(
+                backgroundColor = MaterialTheme.colorScheme.background,
+                tints = listOf(HazeTint(MaterialTheme.colorScheme.background)),
+                blurRadius = 8.dp,
+                noiseFactor = HazeDefaults.noiseFactor
+                ),
+            ) {
+                progressive = HazeProgressive.verticalGradient(
+                easing = EaseOutSine,
+                startIntensity = 0f,
+                endIntensity = 0.5f
+                )
+            }
+        )
+
         // Message Input Area - This will move smoothly with keyboard
-        Column(
+        Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 16.dp)
                 .windowInsetsPadding(WindowInsets.ime)
-                .windowInsetsPadding(WindowInsets.navigationBars)
+                .windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Bottom))
+                .zIndex(1f)
+                .hazeSource(hazeState, zIndex = 2f)
+                .clip(RoundedCornerShape(48.dp))
+                .hazeEffect(
+                    hazeState,
+                    style = HazeStyle(
+                        backgroundColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 1f),
+                        tints = listOf(HazeTint(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f))),
+                        blurRadius = 32.dp,
+                    )
+                )
         ) {
-            Box(
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 24.dp)
-                    .zIndex(1f)
-                    .hazeSource(hazeState, zIndex = 2f)
-                    .clip(RoundedCornerShape(48.dp))
-                    .hazeEffect(
-                        hazeState,
-                        style = HazeStyle(
-                            backgroundColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 1f),
-                            tints = listOf(HazeTint(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f))),
-                            blurRadius = 32.dp,
-                        )
-                    )
+                    .padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
+                // Attachment button
+                IconButton(
+                    onClick = { /* Attachment */ },
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                        .size(60.dp)
+                        .padding(4.dp)
                 ) {
-                    // Attachment button
-                    IconButton(
-                        onClick = { /* Attachment */ },
-                        modifier = Modifier
-                            .size(60.dp)
-                            .padding(4.dp)
-                    ) {
-                        Icon(
-                            Icons.Default.AddCircle,
-                            contentDescription = "Attach File",
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
-
-                    // Message input field
-                    TextField(
-                        value = messageText,
-                        onValueChange = { messageText = it },
-                        modifier = Modifier
-                            .weight(1f),
-                        placeholder = { Text("Type a message...") },
-                        maxLines = 4,
-                        shape = RoundedCornerShape(32.dp),
-                        colors = TextFieldDefaults.colors(
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent,
-                            focusedContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
-                            unfocusedContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
-                            cursorColor = MaterialTheme.colorScheme.primary,
-                        ),
-                        keyboardOptions = KeyboardOptions(
-                            imeAction = if (messageText.isNotBlank()) ImeAction.Send else ImeAction.Default
-                        ),
-                        keyboardActions = KeyboardActions(
-                            onSend = {
-                                if (messageText.isNotBlank()) {
-                                    // Handle send message
-                                    messageText = ""
-                                    keyboardController?.hide()
-                                }
-                            }
-                        )
+                    Icon(
+                        Icons.Default.AddCircle,
+                        contentDescription = "Attach File",
+                        tint = MaterialTheme.colorScheme.primary
                     )
+                }
 
-                    // Send button
-                    IconButton(
-                        onClick = {
+                // Message input field
+                TextField(
+                    value = messageText,
+                    onValueChange = { messageText = it },
+                    modifier = Modifier
+                        .weight(1f),
+                    placeholder = { Text("Type a message...") },
+                    maxLines = 4,
+                    shape = RoundedCornerShape(32.dp),
+                    colors = TextFieldDefaults.colors(
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        focusedContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+                        cursorColor = MaterialTheme.colorScheme.primary,
+                    ),
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = if (messageText.isNotBlank()) ImeAction.Send else ImeAction.Default
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onSend = {
                             if (messageText.isNotBlank()) {
                                 // Handle send message
                                 messageText = ""
                                 keyboardController?.hide()
                             }
-                        },
-                        modifier = Modifier
-                            .size(60.dp)
-                            .padding(4.dp),
-                        enabled = messageText.isNotBlank()
-                    ) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.Send,
-                            contentDescription = "Send Message",
-                            tint = if (messageText.isNotBlank())
-                                MaterialTheme.colorScheme.primary
-                            else
-                                MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+                        }
+                    )
+                )
+
+                // Send button
+                IconButton(
+                    onClick = {
+                        if (messageText.isNotBlank()) {
+                            // Handle send message
+                            messageText = ""
+                            keyboardController?.hide()
+                        }
+                    },
+                    modifier = Modifier
+                        .size(60.dp)
+                        .padding(4.dp),
+                    enabled = messageText.isNotBlank()
+                ) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.Send,
+                        contentDescription = "Send Message",
+                        tint = if (messageText.isNotBlank())
+                            MaterialTheme.colorScheme.primary
+                        else
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
         }
+
     }
 }
 
