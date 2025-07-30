@@ -1,0 +1,39 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "android",
+            "request": "launch",
+            "name": "App Build & Launch",
+            "preLaunchTask": "Build and Install Debug",
+            "appSrcRoot": "${workspaceFolder}/app/src/main/java",
+            "apkFile": "${workspaceFolder}/app/build/outputs/apk/debug/app-debug.apk",
+            "launchActivity": ".MainActivity"
+        },
+        {
+            "type": "android",
+            "request": "launch", 
+            "name": "App Debug Launch",
+            "preLaunchTask": "Build Debug",
+            "appSrcRoot": "${workspaceFolder}/app/src/main/java",
+            "apkFile": "${workspaceFolder}/app/build/outputs/apk/debug/app-debug.apk",
+            "launchActivity": ".MainActivity"
+        },
+        {
+            "type": "android",
+            "request": "attach",
+            "name": "Attach to Android Process",
+            "appSrcRoot": "${workspaceFolder}/app/src/main/java",
+            "processId": "${command:pickAndroidProcess}"
+        },
+        {
+            "type": "android",
+            "request": "launch",
+            "name": "Launch with Clean Build",
+            "preLaunchTask": "Clean Project",
+            "appSrcRoot": "${workspaceFolder}/app/src/main/java",
+            "apkFile": "${workspaceFolder}/app/build/outputs/apk/debug/app-debug.apk",
+            "launchActivity": ".MainActivity"
+        }
+    ]
+}

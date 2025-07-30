@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -32,6 +33,10 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.compose.*
+import androidx.navigation.navArgument
 import com.moonbase.chitchat.ui.theme.ChitChatTheme
 import com.moonbase.chitchat.ui.ChatDetailScreen
 import com.moonbase.chitchat.ui.ChatDetailData
@@ -83,6 +88,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        
         setContent {
             ChitChatTheme {
                 ChitChatApp()
@@ -122,43 +128,71 @@ fun formatDateForChat(dateTime: LocalDateTime): String {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChitChatApp() {
-    var selectedFilters by remember { mutableStateOf(setOf("all")) }
-    var selectedChat by remember { mutableStateOf<ChatItem?>(null) }
-    val hazeState = remember { HazeState() }
-
-    // Navigation: Show chat detail if a chat is selected, otherwise show chat list
-    if (selectedChat != null) {
-        val chatDetailData = createChatDetailData(selectedChat!!)
-        ChatDetailScreen(
-            chatData = chatDetailData,
-            onBackClick = { selectedChat = null }
-        )
-    } else {
-        ChatListScreen(
-            selectedFilters = selectedFilters,
-            onFilterChanged = { filter ->
-                selectedFilters = when {
-                    filter == "all" -> setOf("all")
-                    filter == "group" && selectedFilters.contains("chat") -> {
-                        (selectedFilters - "chat" + filter).takeIf { "all" !in it } ?: setOf(filter)
-                    }
-                    filter == "chat" && selectedFilters.contains("group") -> {
-                        (selectedFilters - "group" + filter).takeIf { "all" !in it } ?: setOf(filter)
-                    }
-                    selectedFilters.contains(filter) -> {
-                        val newFilters = selectedFilters - filter
-                        if (newFilters.isEmpty()) setOf("all") else newFilters
-                    }
-                    else -> {
-                        val newFilters = selectedFilters - "all" + filter
-                        newFilters.takeIf { it.isNotEmpty() } ?: setOf("all")
-                    }
+    val navController = rememberNavController()
+    
+    NavHost(
+        navController = navController,
+        startDestination = "chat_list",
+        enterTransition = {
+            slideInHorizontally(
+                initialOffsetX = { it },
+                animationSpec = tween(300, easing = FastOutSlowInEasing)
+            ) + fadeIn(animationSpec = tween(300))
+        },
+        exitTransition = {
+            slideOutHorizontally(
+                targetOffsetX = { -it / 3 },
+                animationSpec = tween(300, easing = FastOutSlowInEasing)
+            ) + fadeOut(animationSpec = tween(300))
+        },
+        popEnterTransition = {
+            slideInHorizontally(
+                initialOffsetX = { -it / 3 },
+                animationSpec = tween(300, easing = FastOutSlowInEasing)
+            ) + fadeIn(animationSpec = tween(300))
+        },
+        popExitTransition = {
+            slideOutHorizontally(
+                targetOffsetX = { it },
+                animationSpec = tween(300, easing = FastOutSlowInEasing)
+            ) + fadeOut(animationSpec = tween(300))
+        }
+    ) {
+        composable("chat_list") {
+            ChatListScreen(
+                onChatClick = { chat ->
+                    navController.navigate("chat_detail/${chat.id}")
                 }
-            },
-            onChatClick = { chat -> selectedChat = chat },
-            hazeState = hazeState
-        )
+            )
+        }
+        
+        composable(
+            "chat_detail/{chatId}",
+            arguments = listOf(navArgument("chatId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val chatId = backStackEntry.arguments?.getString("chatId") ?: ""
+            val chatDetailData = createChatDetailDataById(chatId)
+            ChatDetailScreen(
+                chatData = chatDetailData,
+                onBackClick = { navController.popBackStack() }
+            )
+        }
     }
+}
+
+// Helper function to create sample messages for chat detail by ID
+fun createChatDetailDataById(chatId: String): ChatDetailData {
+    val sampleChats = listOf(
+        ChatItem("1", "John Doe", "Hey, how are you?", "2:30 PM", LocalDateTime.now().minusHours(2), false, 2, Color.Blue, true, MessageStatus.DELIVERED, "individual"),
+        ChatItem("2", "Family Group", "Mom: Dinner at 7 PM", "1:45 PM", LocalDateTime.now().minusHours(3), true, 5, Color.Green, true, MessageStatus.SENT, "group"),
+        ChatItem("3", "Sarah Wilson", "Thanks for the help!", "12:20 PM", LocalDateTime.now().minusHours(5), false, 0, Color(0xFF9C27B0), false, MessageStatus.DELIVERED, "individual"),
+        ChatItem("4", "Work Team", "Meeting tomorrow at 10 AM", formatDateForChat(LocalDateTime.now().minusDays(1).minusHours(2)), LocalDateTime.now().minusDays(1).minusHours(2), true, 1, Color(0xFFFF9800), true, MessageStatus.DELIVERED, "group"),
+        ChatItem("5", "Mike Johnson", "Sure, see you then", formatDateForChat(LocalDateTime.now().minusDays(1).minusHours(5)), LocalDateTime.now().minusDays(1).minusHours(5), false, 0, Color.Red, false, MessageStatus.SENT, "individual"),
+        ChatItem("6", "College Friends", "Anyone up for movies?", formatDateForChat(LocalDateTime.now().minusDays(2)), LocalDateTime.now().minusDays(2), true, 3, Color(0xFF009688), false, MessageStatus.DELIVERED, "group")
+    )
+    
+    val chatItem = sampleChats.find { it.id == chatId } ?: sampleChats.first()
+    return createChatDetailData(chatItem)
 }
 
 // Helper function to create sample messages for chat detail
@@ -208,11 +242,10 @@ fun createChatDetailData(chatItem: ChatItem): ChatDetailData {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatListScreen(
-    selectedFilters: Set<String>,
-    onFilterChanged: (String) -> Unit,
-    onChatClick: (ChatItem) -> Unit,
-    hazeState: HazeState
+    onChatClick: (ChatItem) -> Unit
 ) {
+    var selectedFilters by remember { mutableStateOf(setOf("all")) }
+    val hazeState = remember { HazeState() }
     val onlineUsers = remember {
         listOf(
             OnlineUser("u1", "Alice", Color(0xFF9C27B0)),
@@ -399,7 +432,25 @@ fun ChatListScreen(
             // Filter Chips
             FilterChipsRow(
                 selectedFilters = selectedFilters,
-                onFilterChanged = onFilterChanged
+                onFilterChanged = { filter ->
+                    selectedFilters = when {
+                        filter == "all" -> setOf("all")
+                        filter == "group" && selectedFilters.contains("chat") -> {
+                            (selectedFilters - "chat" + filter).takeIf { "all" !in it } ?: setOf(filter)
+                        }
+                        filter == "chat" && selectedFilters.contains("group") -> {
+                            (selectedFilters - "group" + filter).takeIf { "all" !in it } ?: setOf(filter)
+                        }
+                        selectedFilters.contains(filter) -> {
+                            val newFilters = selectedFilters - filter
+                            if (newFilters.isEmpty()) setOf("all") else newFilters
+                        }
+                        else -> {
+                            val newFilters = selectedFilters - "all" + filter
+                            newFilters.takeIf { it.isNotEmpty() } ?: setOf("all")
+                        }
+                    }
+                }
             )
         }
 

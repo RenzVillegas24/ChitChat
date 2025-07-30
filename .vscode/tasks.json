@@ -1,0 +1,269 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Clean Project",
+      "type": "shell",
+      "command": "${workspaceFolder}/gradlew",
+      "args": [
+        "clean"
+      ],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
+      "label": "Build Debug",
+      "type": "shell",
+      "command": "${workspaceFolder}/gradlew",
+      "args": [
+        "assembleDebug"
+      ],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "problemMatcher": [
+        {
+          "pattern": [
+            {
+              "regexp": "^(.*):(\\d+):\\s+(warning|error):\\s+(.*)$",
+              "file": 1,
+              "line": 2,
+              "severity": 3,
+              "message": 4
+            }
+          ]
+        }
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Build Release",
+      "type": "shell",
+      "command": "${workspaceFolder}/gradlew",
+      "args": [
+        "assembleRelease"
+      ],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "problemMatcher": [
+        {
+          "pattern": [
+            {
+              "regexp": "^(.*):(\\d+):\\s+(warning|error):\\s+(.*)$",
+              "file": 1,
+              "line": 2,
+              "severity": 3,
+              "message": 4
+            }
+          ]
+        }
+      ],
+      "group": "build"
+    },
+    {
+      "label": "Install Debug APK",
+      "type": "shell",
+      "command": "${workspaceFolder}/gradlew",
+      "args": [
+        "installDebug"
+      ],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "problemMatcher": [],
+      "group": "build",
+      "dependsOn": "Build Debug"
+    },
+    {
+      "label": "Build and Install Debug",
+      "type": "shell",
+      "command": "${workspaceFolder}/gradlew",
+      "args": [
+        "assembleDebug",
+        "installDebug"
+      ],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "problemMatcher": [
+        {
+          "pattern": [
+            {
+              "regexp": "^(.*):(\\d+):\\s+(warning|error):\\s+(.*)$",
+              "file": 1,
+              "line": 2,
+              "severity": 3,
+              "message": 4
+            }
+          ]
+        }
+      ],
+      "group": "build"
+    },
+    {
+      "label": "Launch App on Device",
+      "type": "shell",
+      "command": "adb",
+      "args": [
+        "shell",
+        "am",
+        "start",
+        "-n",
+        "com.mooncode.mediastream/.MainActivity"
+      ],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
+      "label": "Build and Launch",
+      "type": "shell",
+      "command": "${workspaceFolder}/gradlew",
+      "args": [
+        "assembleDebug",
+        "installDebug"
+      ],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "problemMatcher": [
+        {
+          "pattern": [
+            {
+              "regexp": "^(.*):(\\d+):\\s+(warning|error):\\s+(.*)$",
+              "file": 1,
+              "line": 2,
+              "severity": 3,
+              "message": 4
+            }
+          ]
+        }
+      ],
+      "group": "build",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "Build and Install Debug",
+        "Launch App on Device"
+      ]
+    },
+    {
+      "label": "Run Tests",
+      "type": "shell",
+      "command": "${workspaceFolder}/gradlew",
+      "args": [
+        "test"
+      ],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "problemMatcher": [],
+      "group": "test"
+    },
+    {
+      "label": "Run Android Tests",
+      "type": "shell",
+      "command": "${workspaceFolder}/gradlew",
+      "args": [
+        "connectedAndroidTest"
+      ],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "problemMatcher": [],
+      "group": "test"
+    },
+    {
+      "label": "Lint Check",
+      "type": "shell",
+      "command": "${workspaceFolder}/gradlew",
+      "args": [
+        "lint"
+      ],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
+      "label": "run gradle",
+      "type": "shell",
+      "command": "${workspaceFolder}/gradlew",
+      "args": [
+        "assembleDebug"
+      ],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    }
+  ]
+}
