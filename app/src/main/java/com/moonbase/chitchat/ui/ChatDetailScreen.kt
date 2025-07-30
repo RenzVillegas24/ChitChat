@@ -206,7 +206,7 @@ fun ChatDetailScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
-                .requiredHeight(topPadding + 120.dp)
+                .requiredHeight(topPadding + 150.dp)
                 .hazeEffect(
                     hazeState,
                     style = HazeStyle(
