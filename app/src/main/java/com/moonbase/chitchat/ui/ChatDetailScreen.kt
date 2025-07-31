@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -29,6 +30,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import kotlinx.coroutines.launch
 import dev.chrisbanes.haze.*
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
@@ -63,6 +65,39 @@ fun ChatDetailScreen(
     val hazeState = remember { HazeState() }
     val listState = rememberLazyListState()
     val keyboardController = LocalSoftwareKeyboardController.current
+    val density = LocalDensity.current
+    val coroutineScope = rememberCoroutineScope()
+
+    // Track keyboard height for responsive scrolling
+    val imeHeight = WindowInsets.ime.getBottom(density)
+    val previousImeHeight = remember { mutableStateOf(0) }
+    
+    // Track previous scroll position
+    val previousScrollOffset = remember { mutableStateOf(0) }
+
+    // Handle keyboard responsive scrolling
+    LaunchedEffect(imeHeight) {
+        val imeHeightDelta = imeHeight - previousImeHeight.value
+        
+        if (imeHeightDelta != 0) {
+            // Get current scroll position
+            val currentScrollOffset = listState.firstVisibleItemScrollOffset
+            val currentScrollIndex = listState.firstVisibleItemIndex
+            
+            // Calculate new scroll position relative to keyboard height change
+            val newScrollOffset = currentScrollOffset + imeHeightDelta
+            
+            // Scroll immediately to maintain position relative to keyboard
+            coroutineScope.launch {
+                listState.scrollToItem(
+                    index = currentScrollIndex,
+                    scrollOffset = maxOf(0, newScrollOffset)
+                )
+            }
+        }
+        
+        previousImeHeight.value = imeHeight
+    }
 
     // Scroll to bottom when new messages are added
     LaunchedEffect(chatData.messages.size) {
@@ -80,7 +115,7 @@ fun ChatDetailScreen(
             listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
         }
     }
-
+  
     val hazeBlurTop by animateDpAsState(
         targetValue = if (isAtTop.value) 0.dp else 24.dp,
         animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)
