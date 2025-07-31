@@ -38,6 +38,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
 import com.moonbase.chitchat.ui.theme.ChitChatTheme
 import com.moonbase.chitchat.ui.ChatDetailScreen
 import com.moonbase.chitchat.ui.ChatDetailData
@@ -129,57 +132,63 @@ fun formatDateForChat(dateTime: LocalDateTime): String {
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun ChitChatApp() {
     val navController = rememberNavController()
     
-    NavHost(
-        navController = navController,
-        startDestination = "chat_list",
-        enterTransition = {
-            slideInHorizontally(
-                initialOffsetX = { it },
-                animationSpec = tween(300, easing = FastOutSlowInEasing)
-            ) + fadeIn(animationSpec = tween(300))
-        },
-        exitTransition = {
-            slideOutHorizontally(
-                targetOffsetX = { -it / 3 },
-                animationSpec = tween(300, easing = FastOutSlowInEasing)
-            ) + fadeOut(animationSpec = tween(300))
-        },
-        popEnterTransition = {
-            slideInHorizontally(
-                initialOffsetX = { -it / 3 },
-                animationSpec = tween(300, easing = FastOutSlowInEasing)
-            ) + fadeIn(animationSpec = tween(300))
-        },
-        popExitTransition = {
-            slideOutHorizontally(
-                targetOffsetX = { it },
-                animationSpec = tween(300, easing = FastOutSlowInEasing)
-            ) + fadeOut(animationSpec = tween(300))
-        }
-    ) {
-        composable("chat_list") {
-            ChatListScreen(
-                onChatClick = { chat ->
-                    navController.navigate("chat_detail/${chat.id}")
+    SharedTransitionLayout {
+        NavHost(
+            navController = navController,
+            startDestination = "chat_list"
+        ) {
+            composable(
+                "chat_list",
+                enterTransition = {
+                    // When returning from chat detail, scale in
+                    scaleIn(
+                        initialScale = 0.95f,
+                        animationSpec = tween(500, easing = FastOutSlowInEasing)
+                    ) + fadeIn(animationSpec = tween(500))
+                },
+                exitTransition = {
+                    // When going to chat detail, just scale down slightly and fade
+                    scaleOut(
+                        targetScale = 0.95f,
+                        animationSpec = tween(500, easing = FastOutSlowInEasing)
+                    ) + fadeOut(animationSpec = tween(500))
                 }
-            )
-        }
-        
-        composable(
-            "chat_detail/{chatId}",
-            arguments = listOf(navArgument("chatId") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val chatId = backStackEntry.arguments?.getString("chatId") ?: ""
-            val chatDetailData = createChatDetailDataById(chatId)
-            ChatDetailScreen(
-                chatData = chatDetailData,
-                onBackClick = { navController.popBackStack() }
-            )
+            ) {
+                ChatListScreen(
+                    onChatClick = { chat ->
+                        navController.navigate("chat_detail/${chat.id}")
+                    },
+                    sharedTransitionScope = this@SharedTransitionLayout,
+                    animatedVisibilityScope = this
+                )
+            }
+            
+            composable(
+                "chat_detail/{chatId}",
+                arguments = listOf(navArgument("chatId") { type = NavType.StringType }),
+                enterTransition = {
+                    // When entering chat detail, just fade in (shared element handles the main transition)
+                    fadeIn(animationSpec = tween(500, easing = FastOutSlowInEasing))
+                },
+                exitTransition = {
+                    // When leaving chat detail, just fade out
+                    fadeOut(animationSpec = tween(500, easing = FastOutSlowInEasing))
+                }
+            ) { backStackEntry ->
+                val chatId = backStackEntry.arguments?.getString("chatId") ?: ""
+                val chatDetailData = createChatDetailDataById(chatId)
+                ChatDetailScreen(
+                    chatData = chatDetailData,
+                    onBackClick = { navController.popBackStack() },
+                    sharedTransitionScope = this@SharedTransitionLayout,
+                    animatedVisibilityScope = this
+                )
+            }
         }
     }
 }
@@ -243,10 +252,12 @@ fun createChatDetailData(chatItem: ChatItem): ChatDetailData {
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun ChatListScreen(
-    onChatClick: (ChatItem) -> Unit
+    onChatClick: (ChatItem) -> Unit,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedVisibilityScope: androidx.compose.animation.AnimatedVisibilityScope
 ) {
     var selectedFilters by remember { mutableStateOf(setOf("all")) }
     val hazeState = remember { HazeState() }
@@ -340,7 +351,9 @@ fun ChatListScreen(
                         isFirst = index == 0,
                         isLast = index == favoriteChats.size - 1,
                         showFavoriteIcon = true,
-                        onChatClick = onChatClick
+                        onChatClick = onChatClick,
+                        sharedTransitionScope = sharedTransitionScope,
+                        animatedVisibilityScope = animatedVisibilityScope
                     )
                 }
 
@@ -360,7 +373,9 @@ fun ChatListScreen(
                         chat = chat,
                         isFirst = index == 0,
                         isLast = index == group.chats.size - 1,
-                        onChatClick = { onChatClick(chat) }
+                        onChatClick = { onChatClick(chat) },
+                        sharedTransitionScope = sharedTransitionScope,
+                        animatedVisibilityScope = animatedVisibilityScope
                     )
                 }
 
@@ -565,13 +580,16 @@ fun FilterChipsRow(
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun ChatListItem(
     chat: ChatItem,
     isFirst: Boolean = false,
     isLast: Boolean = false,
     showFavoriteIcon: Boolean = false,
-    onChatClick: (ChatItem) -> Unit = {}
+    onChatClick: (ChatItem) -> Unit = {},
+    sharedTransitionScope: SharedTransitionScope,
+    animatedVisibilityScope: androidx.compose.animation.AnimatedVisibilityScope
 ) {
     val shape = when {
         isFirst && isLast -> RoundedCornerShape(16.dp)
@@ -580,17 +598,25 @@ fun ChatListItem(
         else -> RoundedCornerShape(5.dp)
     }
 
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .padding(vertical = 1.dp)
-            .clickable { onChatClick(chat) },
-        shape = shape,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer
-        )
-    ) {
+    with(sharedTransitionScope) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .padding(vertical = 1.dp)
+                .sharedElement(
+                    sharedContentState = rememberSharedContentState(key = "chat-${chat.id}"),
+                    animatedVisibilityScope = animatedVisibilityScope,
+                    boundsTransform = { _, _ ->
+                        tween(durationMillis = 500, easing = FastOutSlowInEasing)
+                    }
+                )
+                .clickable { onChatClick(chat) },
+            shape = shape,
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainer
+            )
+        ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -746,6 +772,7 @@ fun ChatListItem(
             }
         }
     }
+}
 }
 
 fun groupChatsByDate(chats: List<ChatItem>): List<GroupedChatItems> {

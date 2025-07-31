@@ -1,6 +1,8 @@
 package com.moonbase.chitchat.ui
 
 import androidx.compose.animation.core.*
+import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -54,12 +56,14 @@ data class ChatDetailData(
     val messages: List<Message>
 )
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun ChatDetailScreen(
     chatData: ChatDetailData,
     onBackClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    sharedTransitionScope: SharedTransitionScope,
+    animatedVisibilityScope: androidx.compose.animation.AnimatedVisibilityScope
 ) {
     var messageText by remember { mutableStateOf("") }
     val hazeState = remember { HazeState() }
@@ -128,11 +132,19 @@ fun ChatDetailScreen(
         animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)
     )
 
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-    ) {
+    with(sharedTransitionScope) {
+        Box(
+            modifier = modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .sharedElement(
+                    sharedContentState = rememberSharedContentState(key = "chat-${chatData.id}"),
+                    animatedVisibilityScope = animatedVisibilityScope,
+                    boundsTransform = { _, _ ->
+                        tween(durationMillis = 500, easing = FastOutSlowInEasing)
+                    }
+                )
+        ) {
 
         // Messages List - This will be compressed by keyboard instead of being pushed up
         LazyColumn(
@@ -376,6 +388,7 @@ fun ChatDetailScreen(
             }
         }
 
+        }
     }
 }
 
