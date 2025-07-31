@@ -36,6 +36,8 @@ import kotlinx.coroutines.launch
 import dev.chrisbanes.haze.*
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
+import com.moonbase.chitchat.ui.components.AnimatedHazeTopAppBar
+import com.moonbase.chitchat.ui.components.HazeTopAppBarDefaults
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -121,11 +123,6 @@ fun ChatDetailScreen(
             listState.canScrollForward.not()
         }
     }
-  
-    val hazeBlurTop by animateDpAsState(
-        targetValue = if (isAtTop.value) 0.dp else 24.dp,
-        animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)
-    )
 
     val hazeBlurBottom by animateDpAsState(
         targetValue = if (isAtBottom.value) 0.dp else 8.dp,
@@ -154,7 +151,7 @@ fun ChatDetailScreen(
                 .hazeSource(state = hazeState)
                 .padding(horizontal = 16.dp),
             contentPadding = PaddingValues(
-                top = statusBarPadding + 80.dp,
+                top = statusBarPadding + HazeTopAppBarDefaults.ChatHeight + 16.dp, // Match custom app bar height + padding
                 bottom = 96.dp
             ),
             verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -172,32 +169,8 @@ fun ChatDetailScreen(
             }
         }
 
-        // Top App Bar with Haze Effect
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .requiredHeight(statusBarPadding + 120.dp)
-                .hazeSource(hazeState, zIndex = 1f)
-                .hazeEffect(
-                    hazeState,
-                    style = HazeStyle(
-                        backgroundColor = MaterialTheme.colorScheme.background,
-                        tints = listOf(HazeTint(MaterialTheme.colorScheme.background)),
-                        blurRadius = hazeBlurTop,
-                        noiseFactor = HazeDefaults.noiseFactor
-                    )
-                ) {
-                    progressive = HazeProgressive.verticalGradient(
-                        easing = EaseOutSine,
-                        startIntensity = 1f,
-                        endIntensity = 0f,
-                    )
-                }
-        )
-
-        // Top App Bar Content
-        TopAppBar(
-            colors = TopAppBarDefaults.topAppBarColors(Color.Transparent),
+        // Custom Haze Top App Bar
+        AnimatedHazeTopAppBar(
             title = {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -255,13 +228,12 @@ fun ChatDetailScreen(
                 IconButton(onClick = { /* Voice call */ }) {
                     Icon(Icons.Default.Call, contentDescription = "Voice Call")
                 }
-                IconButton(onClick = { /* Video call */ }) {
-                    Icon(Icons.Default.Call, contentDescription = "Video Call")
-                }
-                IconButton(onClick = { /* More options */ }) {
-                    Icon(Icons.Default.MoreVert, contentDescription = "More")
-                }
-            }
+            },
+            hazeState = hazeState,
+            isScrolled = !isAtTop.value,
+            height = HazeTopAppBarDefaults.ChatHeight, // Custom height for chat header
+            statusBarPadding = statusBarPadding,
+            verticalAlignment = HazeTopAppBarDefaults.CenterVerticalAlignment
         )
 
         // Message Input Area with Haze Effect - This will move smoothly with keyboard
