@@ -71,9 +71,6 @@ fun ChatDetailScreen(
     // Track keyboard height for responsive scrolling
     val imeHeight = WindowInsets.ime.getBottom(density)
     val previousImeHeight = remember { mutableStateOf(0) }
-    
-    // Track previous scroll position
-    val previousScrollOffset = remember { mutableStateOf(0) }
 
     // Handle keyboard responsive scrolling
     LaunchedEffect(imeHeight) {
@@ -115,9 +112,19 @@ fun ChatDetailScreen(
             listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
         }
     }
+    val isAtBottom = remember {
+        derivedStateOf {
+            listState.canScrollForward.not()
+        }
+    }
   
     val hazeBlurTop by animateDpAsState(
         targetValue = if (isAtTop.value) 0.dp else 24.dp,
+        animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)
+    )
+
+    val hazeBlurBottom by animateDpAsState(
+        targetValue = if (isAtBottom.value) 0.dp else 8.dp,
         animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)
     )
 
@@ -245,8 +252,6 @@ fun ChatDetailScreen(
             }
         )
 
-
-
         // Message Input Area with Haze Effect - This will move smoothly with keyboard
         Box(
             modifier = Modifier
@@ -260,16 +265,16 @@ fun ChatDetailScreen(
             .hazeEffect(
                 hazeState,
                 style = HazeStyle(
-                backgroundColor = MaterialTheme.colorScheme.background,
-                tints = listOf(HazeTint(MaterialTheme.colorScheme.background)),
-                blurRadius = 8.dp,
-                noiseFactor = HazeDefaults.noiseFactor
+                    backgroundColor = MaterialTheme.colorScheme.background,
+                    tints = listOf(HazeTint(MaterialTheme.colorScheme.background.copy(alpha = 0f))),
+                    blurRadius = hazeBlurBottom,
+                    noiseFactor = HazeDefaults.noiseFactor
                 ),
             ) {
                 progressive = HazeProgressive.verticalGradient(
-                easing = EaseOutSine,
-                startIntensity = 0f,
-                endIntensity = 0.5f
+                    easing = EaseOutSine,
+                    startIntensity = 0f,
+                    endIntensity = 1f
                 )
             }
         )
