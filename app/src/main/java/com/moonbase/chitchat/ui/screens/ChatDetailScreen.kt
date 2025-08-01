@@ -1,5 +1,6 @@
-package com.moonbase.chitchat.ui
+package com.moonbase.chitchat.ui.screens
 
+import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.core.*
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -22,13 +23,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -36,7 +34,6 @@ import androidx.compose.ui.zIndex
 import kotlinx.coroutines.launch
 import dev.chrisbanes.haze.*
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
-import dev.chrisbanes.haze.materials.HazeMaterials
 import com.moonbase.chitchat.ui.components.AnimatedHazeTopAppBar
 import com.moonbase.chitchat.ui.components.HazeTopAppBarDefaults
 import com.moonbase.chitchat.ui.components.UserAvatarWithStatus
@@ -54,7 +51,7 @@ fun ChatDetailScreen(
   onBackClick: () -> Unit,
   modifier: Modifier = Modifier,
   sharedTransitionScope: SharedTransitionScope,
-  animatedVisibilityScope: androidx.compose.animation.AnimatedVisibilityScope
+  animatedVisibilityScope: AnimatedVisibilityScope
 ) {
   var messageText by remember { mutableStateOf("") }
   val hazeState = remember { HazeState() }
@@ -126,34 +123,8 @@ fun ChatDetailScreen(
         .sharedElement(
           sharedContentState = rememberSharedContentState(key = "chat-${chatData.id}"),
           animatedVisibilityScope = animatedVisibilityScope,
-          boundsTransform = { initial, target ->
-            // Calculate scale based on initial bounds width
-            val initialWidth = initial.right - initial.left
-            val targetWidth = target.right - target.left
-            val widthScale = initialWidth / targetWidth
-            
-            // Calculate center positions for scaling
-            val initialCenterX = (initial.left + initial.right) / 2f
-            val targetCenterX = (target.left + target.right) / 2f
-            
-            keyframes {
-              durationMillis = 500
-              
-              // At start: scale down from initial size, centered on target position
-              val scaledWidth = targetWidth * widthScale
-              val scaledLeft = targetCenterX - scaledWidth / 2f
-              val scaledRight = targetCenterX + scaledWidth / 2f
-              
-              Rect(
-                left = scaledLeft,
-                top = initial.top,
-                right = scaledRight,
-                bottom = initial.bottom
-              ) at 0 using FastOutSlowInEasing
-              
-              // At end: reach target bounds
-              target at 500
-            }
+          boundsTransform = { _, _ ->
+            tween(durationMillis = 500, easing = FastOutSlowInEasing)
           }
         )
     ) {

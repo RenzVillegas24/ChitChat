@@ -15,7 +15,7 @@ import androidx.navigation.navArgument
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import com.moonbase.chitchat.ui.theme.ChitChatTheme
-import com.moonbase.chitchat.ui.ChatDetailScreen
+import com.moonbase.chitchat.ui.screens.ChatDetailScreen
 import com.moonbase.chitchat.ui.screens.ChatListScreen
 import com.moonbase.chitchat.data.SampleData
 
