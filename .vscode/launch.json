@@ -4,17 +4,35 @@
         {
             "type": "android",
             "request": "launch",
-            "name": "App Build & Launch",
-            "preLaunchTask": "Build and Install Debug",
+            "name": "Debug Launch",
+            "preLaunchTask": "Build Debug",
             "appSrcRoot": "${workspaceFolder}/app/src/main/java",
             "apkFile": "${workspaceFolder}/app/build/outputs/apk/debug/app-debug.apk",
             "launchActivity": ".MainActivity"
         },
         {
             "type": "android",
+            "request": "launch",
+            "name": "Release Launch",
+            "preLaunchTask": "Build Release",
+            "appSrcRoot": "${workspaceFolder}/app/src/main/java",
+            "apkFile": "${workspaceFolder}/app/build/outputs/apk/release/app-release.apk",
+            "launchActivity": ".MainActivity"
+        },
+        {
+            "type": "android",
             "request": "launch", 
-            "name": "App Debug Launch",
-            "preLaunchTask": "Build Debug",
+            "name": "Debug Install",
+            "preLaunchTask": "Debug Install",
+            "appSrcRoot": "${workspaceFolder}/app/src/main/java",
+            "apkFile": "${workspaceFolder}/app/build/outputs/apk/debug/app-debug.apk",
+            "launchActivity": ".MainActivity"
+        },
+        {
+            "type": "android",
+            "request": "launch",
+            "name": "Release Install",
+            "preLaunchTask": "Release Install",
             "appSrcRoot": "${workspaceFolder}/app/src/main/java",
             "apkFile": "${workspaceFolder}/app/build/outputs/apk/debug/app-debug.apk",
             "launchActivity": ".MainActivity"
@@ -29,7 +47,7 @@
         {
             "type": "android",
             "request": "launch",
-            "name": "Launch with Clean Build",
+            "name": "Clean & Debug Launch",
             "preLaunchTask": "Clean Project",
             "appSrcRoot": "${workspaceFolder}/app/src/main/java",
             "apkFile": "${workspaceFolder}/app/build/outputs/apk/debug/app-debug.apk",

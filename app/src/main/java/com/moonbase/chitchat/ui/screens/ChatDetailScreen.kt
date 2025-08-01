@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
@@ -125,8 +126,34 @@ fun ChatDetailScreen(
         .sharedElement(
           sharedContentState = rememberSharedContentState(key = "chat-${chatData.id}"),
           animatedVisibilityScope = animatedVisibilityScope,
-          boundsTransform = { _, _ ->
-            tween(durationMillis = 500, easing = FastOutSlowInEasing)
+          boundsTransform = { initial, target ->
+            // Calculate scale based on initial bounds width
+            val initialWidth = initial.right - initial.left
+            val targetWidth = target.right - target.left
+            val widthScale = initialWidth / targetWidth
+            
+            // Calculate center positions for scaling
+            val initialCenterX = (initial.left + initial.right) / 2f
+            val targetCenterX = (target.left + target.right) / 2f
+            
+            keyframes {
+              durationMillis = 500
+              
+              // At start: scale down from initial size, centered on target position
+              val scaledWidth = targetWidth * widthScale
+              val scaledLeft = targetCenterX - scaledWidth / 2f
+              val scaledRight = targetCenterX + scaledWidth / 2f
+              
+              Rect(
+                left = scaledLeft,
+                top = initial.top,
+                right = scaledRight,
+                bottom = initial.bottom
+              ) at 0 using FastOutSlowInEasing
+              
+              // At end: reach target bounds
+              target at 500
+            }
           }
         )
     ) {
@@ -136,6 +163,7 @@ fun ChatDetailScreen(
         state = listState,
         modifier = Modifier
           .fillMaxSize()
+          .background(MaterialTheme.colorScheme.background)
           .hazeSource(state = hazeState)
           .padding(horizontal = 16.dp),
         contentPadding = PaddingValues(
@@ -177,7 +205,6 @@ fun ChatDetailScreen(
               ) {
                 Text(
                   text = "G",
-                  color = Color.White,
                   fontWeight = FontWeight.Bold,
                   fontSize = 16.sp
                 )
@@ -237,9 +264,9 @@ fun ChatDetailScreen(
         isScrolled = !isAtTop.value,
         height = HazeTopAppBarDefaults.ChatHeight, // Custom height for chat header
         statusBarPadding = statusBarPadding,
-        titleVerticalAlignment = Alignment.CenterVertically,
-        navigationIconVerticalAlignment = Alignment.Top,
-        actionsVerticalAlignment = Alignment.Top
+        hazeModifier = Modifier.zIndex(3f),
+        contentModifier = Modifier.zIndex(4f),
+        titlePadding = PaddingValues(top = 8.dp),
       )
 
       // Message Input Area with Haze Effect - This will move smoothly with keyboard

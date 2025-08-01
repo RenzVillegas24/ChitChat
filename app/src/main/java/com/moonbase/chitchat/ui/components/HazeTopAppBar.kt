@@ -54,7 +54,8 @@ object HazeTopAppBarDefaults {
 @Composable
 fun HazeTopAppBar(
   title: @Composable () -> Unit,
-  modifier: Modifier = Modifier,
+  hazeModifier: Modifier = Modifier,
+  contentModifier: Modifier = Modifier,
   navigationIcon: @Composable (() -> Unit)? = null,
   actions: @Composable RowScope.() -> Unit = {},
   hazeState: HazeState,
@@ -74,7 +75,7 @@ fun HazeTopAppBar(
 
   // Haze background
   Box(
-    modifier = modifier
+    modifier = hazeModifier
       .fillMaxWidth()
       .requiredHeight(totalHeight + 64.dp) // Extra height for better gradient effect
       .hazeSource(hazeState, zIndex = 1f)
@@ -97,7 +98,7 @@ fun HazeTopAppBar(
 
   // App bar content
   Surface(
-    modifier = Modifier
+    modifier = contentModifier
       .fillMaxWidth()
       .requiredHeight(totalHeight)
       .padding(padding), // Apply overall padding to the entire app bar
@@ -127,7 +128,11 @@ fun HazeTopAppBar(
               modifier = Modifier.size(48.dp),
               contentAlignment = Alignment.Center
             ) {
-              icon()
+              CompositionLocalProvider(
+                LocalContentColor provides MaterialTheme.colorScheme.onSurface
+              ) {
+                icon()
+              }
             }
           }
         }
@@ -156,7 +161,11 @@ fun HazeTopAppBar(
             horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalAlignment = Alignment.CenterVertically
           ) {
-            actions()
+            CompositionLocalProvider(
+              LocalContentColor provides MaterialTheme.colorScheme.onSurface
+            ) {
+              actions()
+            }
           }
         }
       }
@@ -171,7 +180,8 @@ fun HazeTopAppBar(
 @Composable
 fun AnimatedHazeTopAppBar(
   title: @Composable () -> Unit,
-  modifier: Modifier = Modifier,
+  hazeModifier: Modifier = Modifier,
+  contentModifier: Modifier = Modifier,
   navigationIcon: @Composable (() -> Unit)? = null,
   actions: @Composable RowScope.() -> Unit = {},
   hazeState: HazeState,
@@ -195,7 +205,8 @@ fun AnimatedHazeTopAppBar(
 
   HazeTopAppBar(
     title = title,
-    modifier = modifier,
+    hazeModifier = hazeModifier,
+    contentModifier = contentModifier,
     navigationIcon = navigationIcon,
     actions = actions,
     hazeState = hazeState,

@@ -57,12 +57,6 @@ fun ChatListScreen(
   val isAtTop =
     remember { derivedStateOf { listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0 } }
 
-  // animate blur radius smoothly
-  val hazeBlurTop by animateDpAsState(
-    targetValue = if (isAtTop.value) 0.dp else 24.dp,
-    animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)
-  )
-
   val groupedChats = remember(regularChats) {
     groupChatsByDate(regularChats)
   }
