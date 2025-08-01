@@ -36,3 +36,17 @@ fun formatDateForChat(dateTime: LocalDateTime): String {
     else -> dateTime.format(DateTimeFormatter.ofPattern("MMM d, yyyy"))
   }
 }
+
+fun formatLastSeenTime(lastSeenTime: LocalDateTime): String {
+  val now = LocalDateTime.now()
+  val minutesBetween = ChronoUnit.MINUTES.between(lastSeenTime, now)
+  val hoursBetween = ChronoUnit.HOURS.between(lastSeenTime, now)
+  val daysBetween = ChronoUnit.DAYS.between(lastSeenTime, now)
+
+  return when {
+    minutesBetween < 60 -> "${minutesBetween}m"
+    hoursBetween < 24 -> "${hoursBetween}h"
+    daysBetween < 7 -> "${daysBetween}d"
+    else -> "long ago"
+  }
+}

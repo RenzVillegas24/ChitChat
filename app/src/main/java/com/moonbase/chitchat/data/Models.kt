@@ -26,7 +26,10 @@ data class ChatItem(
   val avatarColor: Color = Color.Blue,
   val isFavorite: Boolean = false,
   val messageStatus: MessageStatus = MessageStatus.DELIVERED,
-  val destination: String = "individual" // "individual", "group",  "channel"
+  val destination: String = "individual", // "individual", "group",  "channel"
+  val isOnline: Boolean = false,
+  val lastSeenTime: LocalDateTime? = null,
+  val isTyping: Boolean = false
 )
 
 data class GroupedChatItems(
@@ -48,5 +51,8 @@ data class ChatDetailData(
   val name: String,
   val isGroup: Boolean,
   val avatarColor: Color,
-  val messages: List<Message>
+  val messages: List<Message>,
+  val isOnline: Boolean = false,
+  val lastSeenTime: LocalDateTime? = null,
+  val isTyping: Boolean = false
 )

@@ -3,7 +3,7 @@
   <component name="deploymentTargetSelector">
     <selectionStates>
       <SelectionState runConfigName="ChitChat">
-        <option name="selectionMode" value="DROPDOWN" />
+        <option name="selectionMode" value="DIALOG" />
         <DropdownSelection timestamp="2025-07-30T19:29:30.520806264Z">
           <Target type="DEFAULT_BOOT">
             <handle>
@@ -15,7 +15,7 @@
           <targets>
             <Target type="DEFAULT_BOOT">
               <handle>
-                <DeviceId pluginId="Default" identifier="serial=192.168.18.102:5555;connection=21f24adb" />
+                <DeviceId pluginId="Default" identifier="serial=192.168.18.102:5555;connection=75e5fb36" />
               </handle>
             </Target>
             <Target type="DEFAULT_BOOT">

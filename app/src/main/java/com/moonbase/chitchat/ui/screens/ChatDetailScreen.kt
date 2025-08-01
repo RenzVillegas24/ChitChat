@@ -38,10 +38,13 @@ import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import com.moonbase.chitchat.ui.components.AnimatedHazeTopAppBar
 import com.moonbase.chitchat.ui.components.HazeTopAppBarDefaults
+import com.moonbase.chitchat.ui.components.UserAvatarWithStatus
 import com.moonbase.chitchat.data.Message
 import com.moonbase.chitchat.data.ChatDetailData
+import com.moonbase.chitchat.utils.formatLastSeenTime
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
@@ -157,47 +160,63 @@ fun ChatDetailScreen(
       // Custom Haze Top App Bar
       AnimatedHazeTopAppBar(
         title = {
-          Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.clickable { /* Open chat info */ }
+          Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+              .fillMaxWidth()
+              .clickable { /* Open chat info */ }
           ) {
-            // Chat Avatar
-            Box(
-              modifier = Modifier
-                .size(40.dp)
-                .clip(CircleShape)
-                .background(chatData.avatarColor),
-              contentAlignment = Alignment.Center
-            ) {
-              Text(
-                text = if (chatData.isGroup) "G" else chatData.name.first().toString(),
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                fontSize = 16.sp
+            if (chatData.isGroup) {
+              // For group chats, show a simple avatar without status
+              Box(
+                modifier = Modifier
+                  .size(40.dp)
+                  .clip(CircleShape)
+                  .background(chatData.avatarColor),
+                contentAlignment = Alignment.Center
+              ) {
+                Text(
+                  text = "G",
+                  color = Color.White,
+                  fontWeight = FontWeight.Bold,
+                  fontSize = 16.sp
+                )
+              }
+            } else {
+              // For individual chats, use the new UserAvatarWithStatus component
+              val lastSeenTimeFormatted = chatData.lastSeenTime?.let { lastSeen ->
+                val now = LocalDateTime.now()
+                val hoursBetween = ChronoUnit.HOURS.between(lastSeen, now)
+                if (hoursBetween <= 24) formatLastSeenTime(lastSeen) else null
+              }
+              
+              UserAvatarWithStatus(
+                name = chatData.name,
+                avatarColor = chatData.avatarColor,
+                isOnline = chatData.isOnline,
+                lastSeenTime = lastSeenTimeFormatted,
+                isTyping = chatData.isTyping,
+                showName = false,
+                size = 48.dp
               )
             }
 
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
-            Column {
+            // Chat Name
+            Text(
+              text = chatData.name,
+              fontSize = 18.sp,
+              fontWeight = FontWeight.Medium
+            )
+
+            // Group info only for group chats
+            if (chatData.isGroup) {
               Text(
-                text = chatData.name,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Medium
+                text = "Group • ${chatData.messages.map { it.senderName }.distinct().size} members",
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
               )
-              if (chatData.isGroup) {
-                Text(
-                  text = "Group • ${chatData.messages.map { it.senderName }.distinct().size} members",
-                  fontSize = 12.sp,
-                  color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-              } else {
-                Text(
-                  text = "Online",
-                  fontSize = 12.sp,
-                  color = MaterialTheme.colorScheme.primary
-                )
-              }
             }
           }
         },
@@ -218,7 +237,7 @@ fun ChatDetailScreen(
         isScrolled = !isAtTop.value,
         height = HazeTopAppBarDefaults.ChatHeight, // Custom height for chat header
         statusBarPadding = statusBarPadding,
-        titleVerticalAlignment = Alignment.Top,
+        titleVerticalAlignment = Alignment.CenterVertically,
         navigationIconVerticalAlignment = Alignment.Top,
         actionsVerticalAlignment = Alignment.Top
       )

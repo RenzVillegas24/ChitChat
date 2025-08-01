@@ -19,7 +19,7 @@ import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
  */
 object HazeTopAppBarDefaults {
   val Height = 56.dp
-  val ChatHeight = 96.dp // For chat screens with avatars
+  val ChatHeight = 128.dp // For chat screens with avatars
   val GroupChatHeight = 156.dp // For group chat screens with avatars
   val DefaultBlurRadius = 24.dp
   val MinBlurRadius = 0.dp

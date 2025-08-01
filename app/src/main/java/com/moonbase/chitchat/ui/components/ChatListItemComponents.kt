@@ -22,6 +22,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.moonbase.chitchat.data.ChatItem
+import com.moonbase.chitchat.ui.components.UserAvatarWithStatus
+import com.moonbase.chitchat.utils.formatLastSeenTime
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -80,18 +82,36 @@ fun ChatListItem(
       ) {
         // Avatar with destination indicator
         Box {
-          Box(
-            modifier = Modifier
-              .size(48.dp)
-              .clip(CircleShape)
-              .background(chat.avatarColor),
-            contentAlignment = Alignment.Center
-          ) {
-            Text(
-              text = if (chat.isGroup) "G" else chat.name.first().toString(),
-              color = Color.White,
-              fontWeight = FontWeight.Bold,
-              fontSize = 18.sp
+          if (chat.isGroup) {
+            // For group chats, use simple avatar without status
+            Box(
+              modifier = Modifier
+                .size(48.dp)
+                .clip(CircleShape)
+                .background(chat.avatarColor),
+              contentAlignment = Alignment.Center
+            ) {
+              Text(
+                text = "G",
+                color = Color.White,
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp
+              )
+            }
+          } else {
+            // For individual chats, use UserAvatarWithStatus
+            val lastSeenTimeFormatted = if (chat.lastSeenTime != null) {
+              formatLastSeenTime(chat.lastSeenTime)
+            } else null
+            
+            UserAvatarWithStatus(
+              name = chat.name,
+              avatarColor = chat.avatarColor,
+              isOnline = chat.isOnline,
+              lastSeenTime = lastSeenTimeFormatted,
+              isTyping = chat.isTyping,
+              showName = false,
+              size = 48.dp
             )
           }
 
