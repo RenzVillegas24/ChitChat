@@ -85,11 +85,9 @@ fun ChatListScreen(
           SectionHeader("Favorites")
         }
 
-        itemsIndexed(favoriteChats) { index, chat ->
-          ChatListItem(
-            chat = chat,
-            isFirst = index == 0,
-            isLast = index == favoriteChats.size - 1,
+        item {
+          DynamicChatListContainer(
+            chats = favoriteChats,
             showFavoriteIcon = true,
             onChatClick = onChatClick,
             sharedTransitionScope = sharedTransitionScope,
@@ -108,12 +106,11 @@ fun ChatListScreen(
           SectionHeader(group.dateGroup)
         }
 
-        itemsIndexed(group.chats) { index, chat ->
-          ChatListItem(
-            chat = chat,
-            isFirst = index == 0,
-            isLast = index == group.chats.size - 1,
-            onChatClick = { onChatClick(chat) },
+        item {
+          DynamicChatListContainer(
+            chats = group.chats,
+            showFavoriteIcon = false,
+            onChatClick = onChatClick,
             sharedTransitionScope = sharedTransitionScope,
             animatedVisibilityScope = animatedVisibilityScope
           )

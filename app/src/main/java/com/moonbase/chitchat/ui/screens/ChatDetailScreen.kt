@@ -256,7 +256,7 @@ fun ChatDetailScreen(
               backgroundColor = MaterialTheme.colorScheme.background,
               tints = listOf(HazeTint(MaterialTheme.colorScheme.background.copy(alpha = 0f))),
               blurRadius = hazeBlurBottom,
-              noiseFactor = HazeDefaults.noiseFactor
+              noiseFactor = 0f
             ),
           ) {
             progressive = HazeProgressive.verticalGradient(
