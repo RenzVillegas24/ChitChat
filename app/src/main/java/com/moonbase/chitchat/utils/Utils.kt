@@ -9,6 +9,10 @@ import dev.chrisbanes.haze.HazeTint
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
+import android.content.Context
+import android.os.Build
+import android.view.WindowManager
+import android.view.RoundedCorner
 
 fun hazeStyle(
   colorScheme: Color,
@@ -48,5 +52,17 @@ fun formatLastSeenTime(lastSeenTime: LocalDateTime): String {
     hoursBetween < 24 -> "${hoursBetween}h"
     daysBetween < 7 -> "${daysBetween}d"
     else -> "long ago"
+  }
+}
+
+fun getScreenCornerRadius(context: Context): Float {
+  return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+    val windowInsets = context.getSystemService(WindowManager::class.java)
+      ?.currentWindowMetrics
+      ?.windowInsets
+    val roundedCorner = windowInsets?.getRoundedCorner(RoundedCorner.POSITION_TOP_LEFT)
+    roundedCorner?.radius?.toFloat() ?: 0f
+  } else {
+    0f
   }
 }

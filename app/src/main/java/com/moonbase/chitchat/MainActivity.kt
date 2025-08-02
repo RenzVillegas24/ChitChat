@@ -14,6 +14,8 @@ import androidx.navigation.compose.*
 import androidx.navigation.navArgument
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import com.moonbase.chitchat.ui.theme.ChitChatTheme
 import com.moonbase.chitchat.ui.screens.ChatDetailScreen
 import com.moonbase.chitchat.ui.screens.ChatListScreen
@@ -29,7 +31,11 @@ class MainActivity : ComponentActivity() {
 
     setContent {
       ChitChatTheme {
-        ChitChatApp()
+        Surface (
+          color = MaterialTheme.colorScheme.background,
+        ){
+          ChitChatApp()
+        }
       }
     }
   }
